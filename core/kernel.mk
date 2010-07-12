@@ -20,6 +20,7 @@ TARGET_KERNEL_CONFIG ?= goldfish_defconfig
 endif
 
 KBUILD_OUTPUT := $(CURDIR)/$(TARGET_OUT_INTERMEDIATES)/kernel
+KBUILD_MODULES_OUTPUT := $(CURDIR)/$(TARGET_OUT_INTERMEDIATES)/kernel-modules
 mk_kernel := + $(hide) $(MAKE) -C $(TARGET_KERNEL_DIR) O=$(KBUILD_OUTPUT) ARCH=$(TARGET_ARCH) $(if $(SHOW_COMMANDS),V=1)
 ifneq ($(TARGET_ARCH),$(HOST_ARCH))
 mk_kernel += INSTALL_MOD_STRIP=1
@@ -53,8 +54,8 @@ _modules: _zimage
 ifeq ($(TARGET_PREBUILT_MODULES),)
 	@echo "**** BUILDING MODULES ****"
 	$(hide) rm -rf $(TARGET_OUT)/lib/modules
-	$(if $(MOD_ENABLED),$(mk_kernel) INSTALL_MOD_PATH=$(CURDIR)/$(TARGET_OUT) modules_install)
-	$(hide) rm -f $(TARGET_OUT)/lib/modules/*/{build,source}
+	$(if $(MOD_ENABLED),$(mk_kernel) INSTALL_MOD_PATH=$(KBUILD_MODULES_OUTPUT) modules_install)
+	$(hide) mkdir $(CURDIR)/$(TARGET_OUT)/lib/modules
 else
 	$(hide) $(ACP) -r $(TARGET_PREBUILT_MODULES) $(TARGET_OUT)/lib	
 endif
@@ -66,8 +67,8 @@ _wifi: _modules
 ifneq ($(TARGET_NO_BUILD_WIFI),true)
 	@echo "**** BUILDING WIFI ****"
 ifneq ($(MOD_ENABLED),)
-	@echo "Copying $(shell ls $(CURDIR)/$(TARGET_OUT)/lib/modules/*/kernel/drivers/net/wireless/*/*.ko) -> $(CURDIR)/$(TARGET_OUT)/lib/modules/$(notdir $(shell ls $(CURDIR)/$(TARGET_OUT)/lib/modules/*/kernel/drivers/net/wireless/*/*.ko))"
-	$(hide) cp $(shell ls $(CURDIR)/$(TARGET_OUT)/lib/modules/*/kernel/drivers/net/wireless/*/*.ko) $(CURDIR)/$(TARGET_OUT)/lib/modules/$(notdir $(shell ls $(CURDIR)/$(TARGET_OUT)/lib/modules/*/kernel/drivers/net/wireless/*/*.ko))
+	@echo "Copying $(shell ls $(KBUILD_MODULES_OUTPUT)/lib/modules/*/kernel/drivers/net/wireless/*/*.ko) -> $(CURDIR)/$(TARGET_OUT)/lib/modules/$(notdir $(shell ls $(KBUILD_MODULES_OUTPUT)/lib/modules/*/kernel/drivers/net/wireless/*/*.ko))"
+	$(hide) cp $(shell ls $(KBUILD_MODULES_OUTPUT)/lib/modules/*/kernel/drivers/net/wireless/*/*.ko) $(CURDIR)/$(TARGET_OUT)/lib/modules/$(notdir $(shell ls $(KBUILD_MODULES_OUTPUT)/lib/modules/*/kernel/drivers/net/wireless/*/*.ko))
 endif
 endif
 
