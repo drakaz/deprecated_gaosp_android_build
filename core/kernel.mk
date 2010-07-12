@@ -64,19 +64,20 @@ endif
 
 .PHONY: _wifi
 _wifi: _modules
-ifneq ($(TARGET_NO_BUILD_WIFI),true)
-	@echo "**** BUILDING WIFI ****"
 ifneq ($(MOD_ENABLED),)
-	@echo "Copying $(shell ls $(KBUILD_MODULES_OUTPUT)/lib/modules/*/kernel/drivers/net/wireless/*/*.ko) -> $(CURDIR)/$(TARGET_OUT)/lib/modules/$(notdir $(shell ls $(KBUILD_MODULES_OUTPUT)/lib/modules/*/kernel/drivers/net/wireless/*/*.ko))"
-	$(hide) cp $(shell ls $(KBUILD_MODULES_OUTPUT)/lib/modules/*/kernel/drivers/net/wireless/*/*.ko) $(CURDIR)/$(TARGET_OUT)/lib/modules/$(notdir $(shell ls $(KBUILD_MODULES_OUTPUT)/lib/modules/*/kernel/drivers/net/wireless/*/*.ko))
-endif
+	@echo "**** INSTALLING KERNEL MODULES INTO /system/lib/modules  ****"
+	$(eval _modules_files := $(shell find $(KBUILD_MODULES_OUTPUT) -name '*.ko'))
+	$(foreach _module_file, $(_modules_files), \
+		$(eval _dest_file := $(shell basename $(_module_file) )) \
+		$(shell cp $(_module_file) $(CURDIR)/$(TARGET_OUT)/lib/modules/$(_dest_file)) \
+	)
 endif
 
 $(INSTALLED_KERNEL_TARGET): _wifi
 	@echo "**** KERNEL BUILT ****"
 	$(hide) $(ACP) -fp $(BUILT_KERNEL_TARGET) $@
 
-installclean: FILES += $(KBUILD_OUTPUT) $(INSTALLED_KERNEL_TARGET)
+installclean: FILES += $(KBUILD_OUTPUT) $(INSTALLED_KERNEL_TARGET) $(KBUILD_MODULES_OUTPUT)
 
 TARGET_PREBUILT_KERNEL  := $(INSTALLED_KERNEL_TARGET)
 
