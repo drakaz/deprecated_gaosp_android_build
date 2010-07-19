@@ -55,7 +55,7 @@ ifeq ($(TARGET_PREBUILT_MODULES),)
 	@echo "**** BUILDING MODULES ****"
 	$(hide) rm -rf $(TARGET_OUT)/lib/modules
 	$(if $(MOD_ENABLED),$(mk_kernel) INSTALL_MOD_PATH=$(KBUILD_MODULES_OUTPUT) modules_install)
-	$(hide) mkdir $(CURDIR)/$(TARGET_OUT)/lib/modules
+	$(hide) mkdir -p $(CURDIR)/$(TARGET_OUT)/lib/modules
 else
 	$(hide) $(ACP) -r $(TARGET_PREBUILT_MODULES) $(TARGET_OUT)/lib	
 endif
