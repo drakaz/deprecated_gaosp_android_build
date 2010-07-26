@@ -277,6 +277,7 @@ ifneq ($(filter dalvik.gc.type-precise,$(PRODUCT_TAGS)),)
   ADDITIONAL_BUILD_PROPERTIES += dalvik.vm.dexopt-flags=m=y
 endif
 
+ifeq (,$(TARGET_BUILD_APPS))
 # Install an apns-conf.xml file if one's not already being installed.
 ifeq (,$(filter %:system/etc/apns-conf.xml, $(PRODUCT_COPY_FILES)))
   PRODUCT_COPY_FILES += \
@@ -297,6 +298,7 @@ ifneq ($(filter eng tests,$(TARGET_BUILD_VARIANT)),)
     endif
   endif
 endif
+endif # !TARGET_BUILD_APPS
 
 ADDITIONAL_BUILD_PROPERTIES += net.bt.name=Android
 
@@ -682,13 +684,16 @@ droidcore: files \
 	$(INSTALLED_USERDATAIMAGE_TARGET) \
 	$(INSTALLED_FILES_FILE)
 
+# dist_libraries only for putting your library into the dist directory with a full build.
+.PHONY: dist_libraries
+
 ifneq ($(TARGET_BUILD_APPS),)
   # If this build is just for apps, only build apps and not the full system by default.
 
   unbundled_build_modules :=
   ifneq ($(filter all,$(TARGET_BUILD_APPS)),)
-    # If they used the magic goal "all" then build everything
-    unbundled_build_modules := $(sort $(call get-tagged-modules,$(ALL_MODULE_TAGS)))
+    # If they used the magic goal "all" then build all apps in the source tree.
+    unbundled_build_modules := $(foreach m,$(sort $(ALL_MODULES)),$(if $(filter APPS,$(ALL_MODULES.$(m).CLASS)),$(m)))
   else
     unbundled_build_modules := $(TARGET_BUILD_APPS)
   endif
@@ -729,7 +734,7 @@ else # TARGET_BUILD_APPS
   endif
 
 # Building a full system-- the default is to build droidcore
-droid: droidcore
+droid: droidcore dist_libraries
 
 endif # TARGET_BUILD_APPS
 
@@ -781,4 +786,3 @@ modules:
 .PHONY: showcommands
 showcommands:
 	@echo >/dev/null
-
