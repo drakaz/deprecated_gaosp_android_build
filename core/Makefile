@@ -125,7 +125,7 @@ $(word 3, 3, $(call default-locale, $(1)))
 endef
 
 BUILDINFO_SH := build/tools/buildinfo.sh
-$(INSTALLED_BUILD_PROP_TARGET): $(BUILDINFO_SH) $(INTERNAL_BUILD_ID_MAKEFILE)
+$(INSTALLED_BUILD_PROP_TARGET): $(BUILDINFO_SH) $(INTERNAL_BUILD_ID_MAKEFILE) $(wildcard $(TARGET_DEVICE_DIR)/system.prop)
 	@echo Target buildinfo: $@
 	@mkdir -p $(dir $@)
 	$(hide) TARGET_BUILD_TYPE="$(TARGET_BUILD_VARIANT)" \
@@ -748,8 +748,12 @@ define build-systemtarball-target
 		$(INSTALLED_SYSTEMTARBALL_TARGET)
 endef
 
+ifndef SYSTEM_TARBALL_FORMAT
+    SYSTEM_TARBALL_FORMAT := bz2
+endif
+
 system_tar := $(PRODUCT_OUT)/system.tar
-INSTALLED_SYSTEMTARBALL_TARGET := $(system_tar).bz2
+INSTALLED_SYSTEMTARBALL_TARGET := $(system_tar).$(SYSTEM_TARBALL_FORMAT)
 $(INSTALLED_SYSTEMTARBALL_TARGET): PRIVATE_SYSTEM_TAR := $(system_tar)
 $(INSTALLED_SYSTEMTARBALL_TARGET): $(FS_GET_STATS) $(INTERNAL_SYSTEMIMAGE_FILES)
 	$(build-systemtarball-target)
@@ -761,6 +765,34 @@ systemtarball-nodeps: $(FS_GET_STATS) \
 
 .PHONY: stnod
 stnod: systemtarball-nodeps
+
+
+#######
+## boot tarball
+define build-boottarball-target
+    $(hide) echo "Target boot fs tarball: $(INSTALLED_BOOTTARBALL_TARGET)"
+    $(hide) mkdir -p $(PRODUCT_OUT)/boot
+    $(hide) cp -f $(INTERNAL_BOOTIMAGE_FILES) $(PRODUCT_OUT)/boot/.
+    $(hide) echo $(BOARD_KERNEL_CMDLINE) > $(PRODUCT_OUT)/boot/cmdline
+    $(hide) $(MKTARBALL) $(FS_GET_STATS) \
+                 $(PRODUCT_OUT) boot $(PRIVATE_BOOT_TAR) \
+                 $(INSTALLED_BOOTTARBALL_TARGET)
+endef
+
+ifndef BOOT_TARBALL_FORMAT
+    BOOT_TARBALL_FORMAT := bz2
+endif
+
+boot_tar := $(PRODUCT_OUT)/boot.tar
+INSTALLED_BOOTTARBALL_TARGET := $(boot_tar).$(BOOT_TARBALL_FORMAT)
+$(INSTALLED_BOOTTARBALL_TARGET): PRIVATE_BOOT_TAR := $(boot_tar)
+$(INSTALLED_BOOTTARBALL_TARGET): $(FS_GET_STATS) $(INTERNAL_BOOTIMAGE_FILES)
+	$(build-boottarball-target)
+
+.PHONY: boottarball-nodeps btnod
+boottarball-nodeps btnod: $(FS_GET_STATS) \
+                      $(filter-out boottarball-nodeps btnod,$(MAKECMDGOALS))
+	$(build-boottarball-target)
 
 
 # -----------------------------------------------------------------
@@ -1037,9 +1069,12 @@ $(INTERNAL_OTA_PACKAGE_TARGET): $(BUILT_TARGET_FILES_PACKAGE) $(OTATOOLS)
            --modver=$(modver) \
            $(BUILT_TARGET_FILES_PACKAGE) $@
 
-.PHONY: otapackage
+.PHONY: otapackage bacon
 otapackage: $(INTERNAL_OTA_PACKAGE_TARGET)
 bacon: otapackage
+	$(hide) \
+		WANT_SQUASHFS=$(WANT_SQUASHFS) \
+		./vendor/cyanogen/tools/squisher
 
 endif    # TARGET_DEVICE != generic
 endif    # TARGET_PRODUCT != sdk

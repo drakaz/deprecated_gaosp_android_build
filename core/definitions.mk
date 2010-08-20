@@ -1096,13 +1096,10 @@ endef
 ## Commands for filtering a target executable or library
 ###########################################################
 
-# Because of bug 743462 ("Prelinked image magic gets stripped
-# by arm-elf-objcopy"), we have to use soslim to strip target
-# binaries.
 define transform-to-stripped
 @mkdir -p $(dir $@)
 @echo "target Strip: $(PRIVATE_MODULE) ($@)"
-$(hide) $(SOSLIM) --strip --shady --quiet $< --outfile $@
+$(hide) $(TARGET_STRIP_COMMAND)
 endef
 
 define transform-to-prelinked
@@ -1383,12 +1380,10 @@ $(hide) $(AAPT) package -u $(PRIVATE_AAPT_FLAGS) \
     -F $@
 endef
 
-#TODO: Allow library directory to be specified based on the target
-#      CPU and ABI instead of being hard coded as armeabi.
 define add-jni-shared-libs-to-package
 $(hide) rm -rf $(dir $@)lib
-$(hide) mkdir -p $(dir $@)lib/armeabi
-$(hide) cp $(PRIVATE_JNI_SHARED_LIBRARIES) $(dir $@)lib/armeabi
+$(hide) mkdir -p $(dir $@)lib/$(TARGET_CPU_ABI)
+$(hide) cp $(PRIVATE_JNI_SHARED_LIBRARIES) $(dir $@)lib/$(TARGET_CPU_ABI)
 $(hide) (cd $(dir $@) && zip -r $(notdir $@) lib)
 $(hide) rm -rf $(dir $@)lib
 endef

@@ -35,7 +35,7 @@ ifeq (0,$(shell expr $$(echo $(MAKE_VERSION) | sed "s/[^0-9\.].*//") \>= 3.81))
 $(warning ********************************************************************************)
 $(warning *  You are using version $(MAKE_VERSION) of make.)
 $(warning *  You must upgrade to version 3.81 or greater.)
-$(warning *  see file://$(shell pwd)/docs/development-environment/machine-setup.html)
+$(warning *  see http://source.android.com/source/download.html)
 $(warning ********************************************************************************)
 $(error stopping)
 endif
@@ -109,7 +109,7 @@ $(info Your version is: $(shell java -version 2>&1 | head -n 1).)
 $(info The correct version is: 1.6.)
 $(info $(space))
 $(info Please follow the machine setup instructions at)
-$(info $(space)$(space)$(space)$(space)http://source.android.com/download)
+$(info $(space)$(space)$(space)$(space)http://source.android.com/source/download.html)
 $(info ************************************************************)
 $(error stop)
 endif
@@ -125,7 +125,7 @@ $(info Your version is: $(shell javac -version 2>&1 | head -n 1).)
 $(info The correct version is: 1.6.)
 $(info $(space))
 $(info Please follow the machine setup instructions at)
-$(info $(space)$(space)$(space)$(space)http://source.android.com/download)
+$(info $(space)$(space)$(space)$(space)http://source.android.com/source/download.html)
 $(info ************************************************************)
 $(error stop)
 endif
@@ -410,6 +410,7 @@ subdirs += \
 	sdk/sdkstats \
 	sdk/sdkmanager \
 	sdk/layoutopt \
+	sdk/ddms \
 	development/apps \
 	development/tools/mkstubs \
 	frameworks/base/tools/layoutlib \
@@ -662,6 +663,9 @@ ramdisk: $(INSTALLED_RAMDISK_TARGET)
 .PHONY: systemtarball
 systemtarball: $(INSTALLED_SYSTEMTARBALL_TARGET)
 
+.PHONY: boottarball
+boottarball: $(INSTALLED_BOOTTARBALL_TARGET)
+
 .PHONY: userdataimage
 userdataimage: $(INSTALLED_USERDATAIMAGE_TARGET)
 
@@ -785,7 +789,7 @@ clobber:
 modules:
 	@echo "Available sub-modules:"
 	@echo "$(call module-names-for-tag-list,$(ALL_MODULE_TAGS))" | \
-	      sed -e 's/  */\n/g' | sort -u | $(COLUMN)
+	      tr -s ' ' '\n' | sort -u | $(COLUMN)
 
 .PHONY: showcommands
 showcommands:
