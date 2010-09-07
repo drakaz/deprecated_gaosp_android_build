@@ -403,14 +403,15 @@ subdirs += \
 	sdk/archquery \
 	sdk/androidprefs \
 	sdk/apkbuilder \
+	sdk/ddms \
+	sdk/hierarchyviewer2 \
 	sdk/jarutils \
 	sdk/layoutlib_api \
 	sdk/layoutlib_utils \
+	sdk/layoutopt \
 	sdk/ninepatch \
 	sdk/sdkstats \
 	sdk/sdkmanager \
-	sdk/layoutopt \
-	sdk/ddms \
 	development/apps \
 	development/tools/mkstubs \
 	frameworks/base/tools/layoutlib \
@@ -564,7 +565,7 @@ else
 endif
 # Use tags to get the non-APPS user modules.  Use the product
 # definition files to get the APPS user modules.
-user_MODULES := $(sort $(call get-tagged-modules,user))
+user_MODULES := $(sort $(call get-tagged-modules,user shell_$(TARGET_SHELL)))
 user_MODULES := $(user_MODULES) $(user_PACKAGES)
 
 eng_MODULES := $(sort $(call get-tagged-modules,eng))
